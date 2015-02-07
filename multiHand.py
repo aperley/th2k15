@@ -52,15 +52,14 @@ def findFingerXY(hand):
         #print contours[2][0][0][0]
         #print contours[2][0][0][1]
         contours = filter(lambda c: len(c) > 5, contours)
+        coords = []
         if len(contours) > 0:
-                cnt = contours[0]
-                M = cv2.moments(cnt)
-                if M['m00'] == 0: return (-5, -5)
-                cx = int(M['m10']/M['m00'])
-                cy = int(M['m01']/M['m00'])
-
-                return (cx,cy)
-        else:
-                return (-5,-5)
+                for cnt in contours:
+                        M = cv2.moments(cnt)
+                        if M['m00'] != 0:
+                                cx = int(M['m10']/M['m00'])
+                                cy = int(M['m01']/M['m00'])
+                                coords.append((cx,cy))
+        return coords
 
 

@@ -4,7 +4,7 @@ import cv2
 import cv2.cv as cv
 import crop
 from contours2 import getBounds
-from hand import findFingerXY
+from multiHand import findFingerXY
 
 from Queue import Queue
 import threading
@@ -17,7 +17,7 @@ class XyloGui(object):
     def __init__(self, cam, queue):
         self.cam = cam
         self.queue = queue
-        self.fingerDotLoc = (-5,-5) #(x,y)
+        self.fingers = [] #(x,y)
         self.lastIdx = None
 
 
@@ -84,22 +84,22 @@ class XyloGui(object):
         self.assignNotes()
 
     def processFrame(self,frame):
-        (x,y) = findFingerXY(frame)
+        self.fingers = findFingerXY(frame)
         t = np.copy(self.default)
         if x > 0:
-            self.fingerDotLoc = (x,y)
-            for i, contour in enumerate(self.contours):
-                dist = cv2.pointPolygonTest(contour, (x, y), False)
-                if dist > 0:
-                    self.playNote(i)
-                    color = self.rainbow[i]                  
-                    cv2.drawContours(t,[contour],-1,color,-1)
-                    cv2.circle(t,(x,y), 10, (0,127,255), -1)
-                    return t
-            # No highlight, but yes finger    
-            cv2.circle(t,(x,y), 10, (0,127,255), -1)
-            self.lastIdx = None
-            return t
+            for (x,y) in self.fingers:
+                for i, contour in enumerate(self.contours):
+                    dist = cv2.pointPolygonTest(contour, (x, y), False)
+                    if dist > 0:
+                        self.playNote(i)
+                        color = self.rainbow[i]                  
+                        cv2.drawContours(t,[contour],-1,color,-1)
+                        cv2.circle(t,(x,y), 10, (0,127,255), -1)
+                        return t
+                # No highlight, but yes finger    
+                cv2.circle(t,(x,y), 10, (0,127,255), -1)
+                self.lastIdx = None
+                return t
         self.lastIdx = None
         return self.default
             
