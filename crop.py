@@ -45,10 +45,6 @@ def four_point_transform(image, pts):
 
 def crop(im):
     im = cv2.medianBlur(im, 5)
-    ret, thresh = cv2.threshold(im, 110, 255,
-                                cv2.THRESH_BINARY_INV)
-    cim = cv2.cvtColor(im, cv2.COLOR_GRAY2BGR)
-
 
     circles = cv2.HoughCircles(im, cv.CV_HOUGH_GRADIENT, 1, 20,
                                param1=50, param2=30,
@@ -56,11 +52,11 @@ def crop(im):
 
     pts = []
     for cir in circles[0]:
-        #cv2.circle(cim, (cir[0], cir[1]), cir[2], (0, 0, 255), 1)
+        cv2.circle(im, (cir[0], cir[1]), int(cir[2]+10), 255, -1)
         pts.append(cir[0:2])
     pts = np.array(pts)
 
-    warped = four_point_transform(cim, pts)
+    warped = four_point_transform(im, pts)
     return warped
 
 
