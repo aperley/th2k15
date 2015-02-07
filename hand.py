@@ -8,8 +8,8 @@ lowerB = [0,100,230]
 upperB = [20,200,255]
 
 ## Code for testing ##
-#hand = cv2.imread('hand3.jpg')
-#small_hand = cv2.resize(hand, (640,480))
+hand = cv2.imread('hand3.jpg')
+small_hand = cv2.resize(hand, (640,480))
 
 # hand is a cropped, color image
 def findFingerXY(hand):
@@ -42,6 +42,15 @@ def findFingerXY(hand):
         contours,hierarchy = cv2.findContours(thresh, cv2.RETR_EXTERNAL,
                                               cv2.CHAIN_APPROX_SIMPLE)
 
+        print type(contours), type(contours[0]), type(contours[0][0])
+
+        print contours
+        print contours[2]
+        print "lala"
+        print contours[2][0]
+        print contours[2][0][0]
+        print contours[2][0][0][0]
+        print contours[2][0][0][1]
         contours = filter(lambda c: len(c) > 5, contours)
         if len(contours) > 0:
                 cnt = contours[0]
@@ -53,3 +62,5 @@ def findFingerXY(hand):
                 return (cx,cy)
         else:
                 return (-5,-5)
+
+findFingerXY(small_hand)

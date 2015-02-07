@@ -19,6 +19,32 @@ class XyloGui(object):
         self.fingerDotLoc = (-5,-5) #(x,y)
         self.lastIdx = None
 
+
+    def sortTuples(self, a, b):
+        x0,y0 = a[0],a[1]
+        x1,y1 = b[0],b[1]
+        if x0 > x1:
+            return 1
+        elif x1 > x0:
+            return -1
+        else:
+            if y0 > y1:
+                return 1
+            elif y1 > y0:
+                return 1
+            else
+        
+    def sortContours(self):
+        maxes = map((lambda cnt : cnt[0][0]),self.contours)
+
+        sortt = sorted(enumerate(maxes),
+                       cmp=lambda ((i,a),(i,b)) : cmp(a, b))
+        sortedCnt = []
+        for (i,pair) in enumerate(sortt):
+            sortedCnt.append(sortt[i])
+        return sortedCnt
+            
+
     def makeRainbowGradient(self, f1=0.5,f2=0.5,f3=0.5,
                             p1=0,p2=2,p3=4,c=128,w=127):
         self.rainbow = []
@@ -56,13 +82,18 @@ class XyloGui(object):
                 self.rect = rect
                 break
         (self.contours, self.thresh) = getBounds(self.template)
-        self.blankThresh = self.thresh.copy()
+        self.contours = self.sortContours()
         self.makeRainbowGradient()
+        self.default = np.zeros(shape(self.thresh),dtype='uint8')
+        for i in xrange(len(self.contours)):
+            color = self.rainbow[i]
+            cv2.drawContours(default, [contours[i]],-1,color,3)
+
         self.assignNotes()
 
     def processFrame(self,frame):
         (x,y) = findFingerXY(frame)
-        t = np.copy(self.thresh)
+        t = np.copy(self.default)
         if x > 0:
             self.fingerDotLoc = (x,y)
             for i, contour in enumerate(self.contours):
@@ -78,10 +109,9 @@ class XyloGui(object):
             self.lastIdx = None
             return t
         self.lastIdx = None
-        return self.blankThresh
+        return self.default
             
 
-    
     def on_mouse(self,event, x, y, flags, thing):
         if event == cv.CV_EVENT_LBUTTONDOWN:
             print (x, y)

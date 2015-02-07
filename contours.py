@@ -1,13 +1,3 @@
-"""
-import numpy
-import cv2
-
-img = cv2.imread('test1.jpg')
-cv2.imshow('Contours', img)
-
-cv2.waitKey(0) & 0xFF
-cv2.destroyAllWindows()
-"""
 
 #640 480
 
@@ -18,6 +8,10 @@ from crop import crop
 
 
 im = cv2.imread('test.png', cv2.CV_LOAD_IMAGE_GRAYSCALE)
+
+cv2.imshow('',im)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
 
 disp = crop(im)
 
@@ -58,6 +52,26 @@ def getBounds(img):
     
     return (contours, thresh_copy)
 
+def cntCmp((x0,y0),(x1,y1)):
+    if x0 > y0:
+        return 1
+    elif x0 > y0:
+        return -1
+    else:
+        if y0 > y1:
+            return 1
+        elif y1 > y0:
+            return -1
+        else: return 0
+        
+def sortBounds(contours):
+    points = []
+    for cnt in contours:
+        points.append(cnt[0])
+    sortt = sorted(contours, key = lambda cnt: cnt[0])
+    return sortt
+        
+
 def onContact(contours,contourIdx,thresh_copy):
     cnt = contours[contourIdx]
     color = (0,255,0)
@@ -82,5 +96,8 @@ def on_mouse(event, x, y, flags, thing):
 
 
 
-getBounds(disp)
+(contours, thresh) = getBounds(disp)
+
+
+sortBounds(contour)
 
