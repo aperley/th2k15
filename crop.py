@@ -48,7 +48,7 @@ def crop(im):
 
     circles = cv2.HoughCircles(im, cv.CV_HOUGH_GRADIENT, 1, 20,
                                param1=50, param2=30,
-                               minRadius=0, maxRadius=0)
+                               minRadius=0, maxRadius=100)
 
     pts = []
     for cir in circles[0]:
