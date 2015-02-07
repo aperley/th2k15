@@ -2,10 +2,6 @@ import cv2
 import cv2.cv as cv
 import numpy as np
 
-# HSV ranges to detect bright orange
-
-lower = [2,200,200]
-upper = [6,240,255]
 
 ## Code for testing ##
 hand = cv2.imread('orange2.png')

@@ -11,19 +11,21 @@ class XyloGui(object):
         self.figerDotLoc = (-5,-5) #(x,y)
 
         
-        
     def processFrame(self,frame):
         (x,y) = findFingerXY(frame)
+        t = np.copy(self.thresh)
         if x > 0:
             self.fingerDotLoc = (x,y)
             for i, contour in enumerate(self.contours):
                 dist = cv2.pointPolygonTest(contour, (x, y), False)
                 if dist > 0:
-                    color = (0,255,0)
-                    # Create an anonymous image to display till release
-                    t = np.copy(self.thresh)
+                    color = (0,255,0)                    
                     cv2.drawContours(t,[contour],-1,color,-1)
+                    cv2.circle(t,(x,y), 4, (0,127,255), -1)
                     return t
+            # No highlight, but yes finger    
+            cv2.circle(t,(x,y), 4, (0,127,255), -1)
+            return t
         return self.blankThresh
             
             

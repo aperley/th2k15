@@ -4,8 +4,8 @@ import numpy as np
 
 # HSV ranges to detect bright orange
 
-lower = [0,100,230]
-upper = [20,200,256]
+lowerB = [0,100,230]
+upperB = [20,200,255]
 
 ## Code for testing ##
 #hand = cv2.imread('hand3.jpg')
@@ -16,15 +16,17 @@ def findFingerXY(hand):
         hsv_hand = cv2.cvtColor(hand, cv2.COLOR_BGR2HSV)
         hand = cv2.cvtColor(hand, cv2.COLOR_BGR2GRAY)
 
-        lower = np.array(lower, dtype = "uint8")
-        upper = np.array(upper, dtype = "uint8")
+        lower = np.array(lowerB, dtype = "uint8")
+        upper = np.array(upperB, dtype = "uint8")
 
         mask = cv2.inRange(hsv_hand, lower, upper)
         output = cv2.bitwise_and(hsv_hand, hsv_hand, mask=mask)
 
-
+        cv2.imshow('thresh',output)
         output = cv2.cvtColor(output, cv2.COLOR_BGR2GRAY)
         ret,thresh = cv2.threshold(output, 110,255,0)
+
+
 
         # For robustness
         kernel = np.ones((5, 5), np.uint8)
@@ -40,7 +42,7 @@ def findFingerXY(hand):
         contours,hierarchy = cv2.findContours(thresh, cv2.RETR_EXTERNAL,
                                               cv2.CHAIN_APPROX_SIMPLE)
 
-        contours = filter(lambda c: len(c) > 35, contours)
+        contours = filter(lambda c: len(c) > 5, contours)
         if len(contours) > 0:
                 cnt = contours[0]
                 M = cv2.moments(cnt)
@@ -51,3 +53,7 @@ def findFingerXY(hand):
         else:
                 return (-5,-5)
 
+im = cv2.imread('orange1.png')
+print findFingerXY(im)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
