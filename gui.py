@@ -6,19 +6,27 @@ import crop
 from contours2 import getBounds
 from hand import findFingerXY
 
-class XyloGui(object):
-    def __init__(self, cam):
-        self.cam = cam
-        self.fingerDotLoc = (-5,-5) #(x,y)
+from Queue import Queue
+import threading
+from pydub import AudioSegment
+from pydub import playback
+from pydub import effects
 
-    def makeRainbowGradient(f1=0.5,f2=0.5,f3=0.5,
+class XyloGui(object):
+    def __init__(self, cam, queue):
+        self.cam = cam
+        self.queue = queue
+        self.fingerDotLoc = (-5,-5) #(x,y)
+        self.lastIdx = None
+
+    def makeRainbowGradient(self, f1=0.5,f2=0.5,f3=0.5,
                             p1=0,p2=2,p3=4,c=128,w=127):
         self.rainbow = []
-        for i in xrange(len(contours)):
+        for i in xrange(len(self.contours)):
             r = (math.sin(f1*i + p1))*w + c
             g = (math.sin(f2*i + p2))*w + c
             b = (math.sin(f3*i + p3))*w + c
-            rainbow.append((b,g,r))
+            self.rainbow.append((b,g,r))
         return self.rainbow
 
     def assignNotes(self):
@@ -27,7 +35,10 @@ class XyloGui(object):
             self.notes.append(0)
              
     def playNote(self,idx):
-        print "Note %d: %d"%(i, self.notes[i])           
+        if idx != self.lastIdx:
+            self.lastIdx = idx
+            print "Note %d: %d"%(idx, self.notes[idx]) 
+            self.queue.put(idx)          
 
     def initTemplate(self):
         doLock = False
@@ -64,7 +75,9 @@ class XyloGui(object):
                     return t
             # No highlight, but yes finger    
             cv2.circle(t,(x,y), 10, (0,127,255), -1)
+            self.lastIdx = None
             return t
+        self.lastIdx = None
         return self.blankThresh
             
 
@@ -93,10 +106,13 @@ class XyloGui(object):
             cv2.imshow('image', disp[::-1, ::-1])
             if cv2.waitKey(1) == ord('q'):
                 cv2.destroyAllWindows()
+                self.queue.put(-1)
                 return
         
 
-
+    def onHit(self, i):
+        if queue.empty():
+            self.queue.put(i)
 
 def processFrame(frame,thresh):
     cv2.imShow('image',thresh)
@@ -117,7 +133,31 @@ def onRelease(self):
     cv2.imshow('image',blank_thresh)
                     
 
-gui = XyloGui(cv2.VideoCapture(0))
+
+def audioWorker(queue):
+    files = [
+        'PatchArena_marimba-060-c3.wav',
+        'PatchArena_marimba-062-d3.wav',
+        'PatchArena_marimba-064-e3.wav',
+        'PatchArena_marimba-065-f3.wav',
+        'PatchArena_marimba-067-g3.wav',
+        'PatchArena_marimba-069-a3.wav',
+        'PatchArena_marimba-071-h3.wav',
+        'PatchArena_marimba-072-c4.wav',
+
+    ]
+    notes = map(AudioSegment.from_wav, files)
+    while True:
+        val = queue.get()
+        if val < 0:
+            return
+        print "HIT:", val
+        playback.play(notes[val])
+
+queue = Queue()
+worker = threading.Thread(target=audioWorker, args=(queue,))
+gui = XyloGui(cv2.VideoCapture(0), queue)
+worker.start()
 gui.run()
 
 
