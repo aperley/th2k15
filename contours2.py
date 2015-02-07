@@ -17,9 +17,6 @@ import cv2.cv as cv
 from crop import crop
 
 
-im = cv2.imread('test.png', cv2.CV_LOAD_IMAGE_GRAYSCALE)
-
-disp = crop(im)
 
 
 def getBounds(img):
@@ -46,41 +43,9 @@ def getBounds(img):
     #print contours
     contours = filter(lambda c: len(c) > 50, contours)
 
-    blank_thresh = np.copy(thresh_copy)
+    return (contours,thresh_copy)
 
-                            
-    cv2.namedWindow('image')
-    cv.SetMouseCallback('image', on_mouse, 0)
-    cv2.imshow('image',thresh_copy)
 
-    cv2.waitKey(0) & 0xFF
-    cv2.destroyAllWindows()
     
-    return (contours, thresh_copy)
 
-def onContact(contours,contourIdx,thresh_copy):
-    cnt = contours[contourIdx]
-    color = (0,255,0)
-    # Create an anonymous image to display till release
-    t = np.copy(thresh_copy)
-    cv2.drawContours(t,[cnt],-1,color,-1)
-    cv2.imshow('image',t)
-
-def onRelease(contourIdx,blank_thresh):
-    cv2.imshow('image',blank_thresh)
-
-def on_mouse(event, x, y, flags, thing):
-    global mode
-    if event == cv.CV_EVENT_LBUTTONDOWN:
-        print (x, y)
-        for i, contour in enumerate(contours):
-            dist = cv2.pointPolygonTest(contour, (x, y), False)
-            if dist > 0:
-                    onContact(i)
-                    return
-        onRelease(0)
-
-
-
-getBounds(disp)
 
