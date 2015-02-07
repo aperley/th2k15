@@ -96,7 +96,7 @@ class XyloGui(object):
         cv2.namedWindow('image')
         self.initTemplate()
         
-        cv.SetMouseCallback('image', self.on_mouse, 0)
+        #cv.SetMouseCallback('image', self.on_mouse, 0)
         #launch window
 
         while True:
@@ -152,11 +152,11 @@ def audioWorker(queue):
         if val < 0:
             return
         print "HIT:", val
-        playback.play(notes[val])
+        playback.play(notes[val][:300])
 
 queue = Queue()
 worker = threading.Thread(target=audioWorker, args=(queue,))
-gui = XyloGui(cv2.VideoCapture(0), queue)
+gui = XyloGui(cv2.VideoCapture(1), queue)
 worker.start()
 gui.run()
 
