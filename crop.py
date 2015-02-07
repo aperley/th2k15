@@ -64,9 +64,9 @@ def crop(im):
     rect = order_points(pts)
     tl, tr, br, bl = rect
 
-    okay = (abs(np.sum((tl - tr)**2)**0.5 - np.sum((br - bl)**2)**0.5) < 50 and
-           abs(np.sum((tl - bl)**2)**0.5 - np.sum((tr - br)**2)**0.5) < 50)
-
+    okay = (abs(np.sum((tl - tr)**2)**0.5 - np.sum((br - bl)**2)**0.5) < 70 and
+           abs(np.sum((tl - bl)**2)**0.5 - np.sum((tr - br)**2)**0.5) < 70)
+    print okay
 
     mean = im.mean()
     for cir in rect:

@@ -4,11 +4,15 @@ import cv2.cv as cv
 import crop
 from contours2 import getBounds
 from hand import findFingerXY
+from Queue import Queue
+import threading
 
 class XyloGui(object):
-    def __init__(self, cam):
+    def __init__(self, cam, queue):
         self.cam = cam
+        self.queue = queue
         self.fingerDotLoc = (-5,-5) #(x,y)
+        self.contourI = None
 
         
     def processFrame(self,frame):
@@ -22,11 +26,18 @@ class XyloGui(object):
                     color = (0,255,0)                    
                     cv2.drawContours(t,[contour],-1,color,-1)
                     cv2.circle(t,(x,y), 10, (0,127,255), -1)
+
+                    if self.contourI is None:
+                        self.contourI = i
+                        self.onHit(i)
                     return t
             # No highlight, but yes finger    
             cv2.circle(t,(x,y), 10, (0,127,255), -1)
+            self.contourI = None
             return t
+        self.contourI = None
         return self.blankThresh
+
             
             
 
@@ -54,6 +65,7 @@ class XyloGui(object):
             cv2.imshow('image', disp[::-1, ::-1])
             if cv2.waitKey(1) == ord('q'):
                 cv2.destroyAllWindows()
+                self.queue.put(-1)
                 return
         
 
@@ -68,12 +80,15 @@ class XyloGui(object):
                 doLock = True
                 print "Waiting for lock"
 
-            if doLock:
+            if doLock and okay:
                 self.template = warped
                 self.rect = rect
                 break
         (self.contours, self.thresh) = getBounds(self.template)
         self.blankThresh = self.thresh.copy()
+
+    def onHit(self, i):
+        self.queue.put(i)
 
 def processFrame(frame,thresh):
     cv2.imShow('image',thresh)
@@ -94,7 +109,19 @@ def onRelease(self):
     cv2.imshow('image',blank_thresh)
                     
 
-gui = XyloGui(cv2.VideoCapture(0))
+def audioWorker(queue):
+    while True:
+        val = queue.get()
+        if val < 0:
+            return
+        print "HIT:", val
+
+queue = Queue()
+worker = threading.Thread(target=audioWorker, args=(queue,))
+gui = XyloGui(cv2.VideoCapture(0), queue)
+worker.start()
 gui.run()
+worker.join()
+print "Done"
 
 
