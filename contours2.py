@@ -29,8 +29,8 @@ def getBounds(img):
 
 
     kernel = np.ones((5, 5), np.uint8)
-    thresh = cv2.dilate(thresh, kernel, iterations=2)
-    thresh = cv2.erode(thresh, kernel, iterations=2)
+    thresh = cv2.dilate(thresh, kernel, iterations=1)
+    thresh = cv2.erode(thresh, kernel, iterations=1)
 
     thresh_copy = np.copy(thresh)
     thresh_copy = cv2.cvtColor(thresh_copy, cv2.COLOR_GRAY2BGR)
