@@ -15,8 +15,7 @@ def order_points(pts):
 
     return rect
 
-def four_point_transform(image, pts):
-    rect = order_points(pts)
+def four_point_transform(image, rect):
     (tl, tr, br, bl) = rect
 
     widthA = np.sqrt(((br[0] - bl[0]) ** 2) + ((br[0] - bl[0]) ** 2))
@@ -52,11 +51,15 @@ def crop(im):
 
     pts = []
     for cir in circles[0]:
-        cv2.circle(im, (cir[0], cir[1]), int(cir[2]+10), 255, -1)
         pts.append(cir[0:2])
     pts = np.array(pts)
 
-    warped = four_point_transform(im, pts)
+    rect = order_points(pts)
+    mean = im.mean()
+    for cir in rect:
+        cv2.circle(im, (cir[0], cir[1]), 35, mean, -1)
+
+    warped = four_point_transform(im, rect)
     return warped
 
 

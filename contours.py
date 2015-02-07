@@ -17,7 +17,7 @@ import cv2.cv as cv
 from crop import crop
 
 
-im = cv2.imread('test.png', cv2.CV_LOAD_IMAGE_GRAYSCALE)
+im = cv2.imread('test3.png', cv2.CV_LOAD_IMAGE_GRAYSCALE)
 disp = crop(im)
 
 
@@ -25,15 +25,21 @@ disp = crop(im)
 def getBounds(img):
     # Grayscale and thresholding
     #imgray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
-    ret, thresh = cv2.threshold(img, 110, 255, 1)
+    #img = cv2.GaussianBlur(img, (0, 0), 0.5)
+    #ret, thresh = cv2.threshold(img, 120, 255, 1)
+    thresh = cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+                                    cv2.THRESH_BINARY_INV, 11, 3)
 
 
+
+   
+    
+    kernel = np.ones((5, 5), np.uint8)
+    thresh = cv2.dilate(thresh, kernel, iterations=2)
+    thresh = cv2.erode(thresh, kernel, iterations=2)
 
     thresh_copy = np.copy(thresh)
     thresh_copy = cv2.cvtColor(thresh_copy, cv2.COLOR_GRAY2BGR)
-    
-    kernel = np.ones((5, 5), np.uint8)
-    thresh = cv2.dilate(thresh, kernel, iterations=1)
     
 
     #Calculate contours
@@ -41,6 +47,7 @@ def getBounds(img):
                                            cv2.CHAIN_APPROX_SIMPLE)
 
     print contours
+    contours = filter(lambda c: len(c) > 50, contours)
 
     cv2.drawContours(thresh_copy, contours, -1, (0,255,0), 3)
 
