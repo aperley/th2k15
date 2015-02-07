@@ -27,10 +27,10 @@ class XyloGui(object):
         maxes = map((lambda cnt : cnt[0][0]),self.contours)
 
         sortt = sorted(enumerate(maxes),
-                       cmp=lambda a, b: cmp(a[1], b[1]))
+                       cmp=lambda a, b: cmp(a[1][0], b[1][0]))
         sortedCnt = []
         for (i,pair) in enumerate(sortt):
-            sortedCnt.append(sortt[i])
+            sortedCnt.append(self.contours[i])
         return sortedCnt
             
 
@@ -172,13 +172,21 @@ def audioWorker(queue):
         'PatchArena_marimba-072-c4.wav',
 
     ]
-    notes = map(AudioSegment.from_wav, files)
+    notes = map(lambda f: AudioSegment.from_wav(f)[:300], files)
+    sems = map(lambda n: threading.Semaphore(1), notes)
     while True:
         val = queue.get()
         if val < 0:
             return
         print "HIT:", val
-        playback.play(notes[val][:300])
+
+        if sems[val].acquire(False):
+            threading.Thread(target=audioPlayer,
+                             args=(notes, sems, val)).start()
+
+def audioPlayer(notes, sems, val):
+    playback.play(notes[val])
+    sems[val].release()
 
 queue = Queue()
 worker = threading.Thread(target=audioWorker, args=(queue,))
