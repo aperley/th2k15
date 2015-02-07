@@ -41,7 +41,7 @@ def getBounds(img):
                                            cv2.CHAIN_APPROX_SIMPLE)
 
     #print contours
-    contours = filter(lambda c: len(c) > 50, contours)
+    contours = filter(lambda c: len(c) > 40, contours)
 
     return (contours,thresh_copy)
 

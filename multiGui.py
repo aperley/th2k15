@@ -13,12 +13,28 @@ from pydub import playback
 from pydub import effects
 import webbrowser
 
+files = [
+        'PatchArena_marimba-060-c3.wav',
+        'PatchArena_marimba-062-d3.wav',
+        'PatchArena_marimba-064-e3.wav',
+        'PatchArena_marimba-065-f3.wav',
+        'PatchArena_marimba-067-g3.wav',
+        'PatchArena_marimba-069-a3.wav',
+        'PatchArena_marimba-071-h3.wav',
+        'PatchArena_marimba-072-c4.wav',
+        'PatchArena_marimba-074-d4.wav',
+]
+
 class XyloGui(object):
     def __init__(self, cam, queue):
         self.cam = cam
         self.queue = queue
         self.fingers = [] #(x,y)
+        self.lastIdxs = set()
+        self.idxs = set()
         self.lastIdx = None
+        self.contoursOnDeck = []
+        self.pointsOnDeck = []
 
 
         
@@ -50,9 +66,9 @@ class XyloGui(object):
             self.notes.append(0)
              
     def playNote(self,idx):
-        if idx != self.lastIdx:
-            self.lastIdx = idx
-            print "Note %d: %d"%(idx, self.notes[idx]) 
+    	if idx >= len(files): return
+        if idx not in self.lastIdxs:
+            #print "Note %d: %d"%(idx, self.notes[idx]) 
             if self.queue.empty():
                 self.queue.put(idx)
                 #if idx == 3:
@@ -84,24 +100,32 @@ class XyloGui(object):
         self.assignNotes()
 
     def processFrame(self,frame):
+    	self.pointsOnDeck = []
+    	self.contoursOnDeck = []
         self.fingers = findFingerXY(frame)
+        self.idxs = set()
         t = np.copy(self.default)
-        if x > 0:
-            for (x,y) in self.fingers:
-                for i, contour in enumerate(self.contours):
-                    dist = cv2.pointPolygonTest(contour, (x, y), False)
-                    if dist > 0:
-                        self.playNote(i)
-                        color = self.rainbow[i]                  
-                        cv2.drawContours(t,[contour],-1,color,-1)
-                        cv2.circle(t,(x,y), 10, (0,127,255), -1)
-                        return t
-                # No highlight, but yes finger    
-                cv2.circle(t,(x,y), 10, (0,127,255), -1)
-                self.lastIdx = None
-                return t
-        self.lastIdx = None
-        return self.default
+        for (x,y) in self.fingers:
+            for i, contour in enumerate(self.contours):
+                dist = cv2.pointPolygonTest(contour, (x, y), False)
+                if dist > 0:
+                    self.playNote(i)
+                    self.idxs.add(i)
+                    color = self.rainbow[i]
+                    self.contoursOnDeck.append ((t,[contour], -1,color, -1))                  
+                    #
+                    #return t
+            # No highlight, but yes finger    
+            	self.pointsOnDeck.append((x,y))
+
+            self.lastIdx = None
+        self.lastIdxs = self.idxs
+        for args in self.contoursOnDeck:
+        	cv2.drawContours(*args)
+        for (x,y) in self.pointsOnDeck:
+        	cv2.circle(t,(x,y), 10, (0,127,255), -1)
+        return t
+        
             
 
     def on_mouse(self,event, x, y, flags, thing):
@@ -161,17 +185,6 @@ def onRelease(self):
 
 
 def audioWorker(queue):
-    files = [
-        'PatchArena_marimba-060-c3.wav',
-        'PatchArena_marimba-062-d3.wav',
-        'PatchArena_marimba-064-e3.wav',
-        'PatchArena_marimba-065-f3.wav',
-        'PatchArena_marimba-067-g3.wav',
-        'PatchArena_marimba-069-a3.wav',
-        'PatchArena_marimba-071-h3.wav',
-        'PatchArena_marimba-072-c4.wav',
-
-    ]
     notes = map(lambda f: AudioSegment.from_wav(f)[:300], files)
     sems = map(lambda n: threading.Semaphore(1), notes)
     while True:
