@@ -22,7 +22,7 @@ def findFingerXY(hand):
         mask = cv2.inRange(hsv_hand, lower, upper)
         output = cv2.bitwise_and(hsv_hand, hsv_hand, mask=mask)
 
-        cv2.imshow('thresh',output)
+        #cv2.imshow('thresh',output)
         output = cv2.cvtColor(output, cv2.COLOR_BGR2GRAY)
         ret,thresh = cv2.threshold(output, 110,255,0)
 
@@ -46,14 +46,10 @@ def findFingerXY(hand):
         if len(contours) > 0:
                 cnt = contours[0]
                 M = cv2.moments(cnt)
+                if M['m00'] == 0: return (-5, -5)
                 cx = int(M['m10']/M['m00'])
                 cy = int(M['m01']/M['m00'])
 
                 return (cx,cy)
         else:
                 return (-5,-5)
-
-im = cv2.imread('orange1.png')
-print findFingerXY(im)
-cv2.waitKey(0)
-cv2.destroyAllWindows()

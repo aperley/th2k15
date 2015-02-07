@@ -1,14 +1,14 @@
 import numpy as np
 import cv2
 import cv2.cv as cv
-from crop import crop
+import crop
 from contours2 import getBounds
 from hand import findFingerXY
 
 class XyloGui(object):
     def __init__(self, cam):
         self.cam = cam
-        self.figerDotLoc = (-5,-5) #(x,y)
+        self.fingerDotLoc = (-5,-5) #(x,y)
 
         
     def processFrame(self,frame):
@@ -21,10 +21,10 @@ class XyloGui(object):
                 if dist > 0:
                     color = (0,255,0)                    
                     cv2.drawContours(t,[contour],-1,color,-1)
-                    cv2.circle(t,(x,y), 4, (0,127,255), -1)
+                    cv2.circle(t,(x,y), 10, (0,127,255), -1)
                     return t
             # No highlight, but yes finger    
-            cv2.circle(t,(x,y), 4, (0,127,255), -1)
+            cv2.circle(t,(x,y), 10, (0,127,255), -1)
             return t
         return self.blankThresh
             
@@ -51,19 +51,24 @@ class XyloGui(object):
             ret, im = self.cam.read()
             warped = crop.doWarp(im, self.rect)
             disp = self.processFrame(warped)
-            cv2.imshow('image', disp)
+            cv2.imshow('image', disp[::-1, ::-1])
             if cv2.waitKey(1) == ord('q'):
                 cv2.destroyAllWindows()
                 return
         
 
     def initTemplate(self):
+        doLock = False
         while True:
             ret, im = self.cam.read()
             okay, warped, preview, rect = crop.crop(im)
-            cv2.imshow('image', preview)
+            cv2.imshow('image', preview[::-1, ::-1])
 
             if cv2.waitKey(1) == ord('a'):
+                doLock = True
+                print "Waiting for lock"
+
+            if doLock:
                 self.template = warped
                 self.rect = rect
                 break
@@ -89,6 +94,7 @@ def onRelease(self):
     cv2.imshow('image',blank_thresh)
                     
 
-cv2.imshow('image',thresh)
+gui = XyloGui(cv2.VideoCapture(0))
+gui.run()
 
 

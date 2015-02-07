@@ -43,23 +43,38 @@ def four_point_transform(image, rect):
     return warped
 
 def crop(im):
-    im = cv2.medianBlur(im, 5)
+    preview = im.copy()
+    imc = im.copy()
+    im = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
+    im = cv2.GaussianBlur(im, (9,9), 0)
 
     circles = cv2.HoughCircles(im, cv.CV_HOUGH_GRADIENT, 1, 20,
-                               param1=50, param2=30,
+                               param1=200, param2=30,
                                minRadius=0, maxRadius=100)
 
     pts = []
+    if circles is None:
+        return False, None, preview, None
+
     for cir in circles[0]:
         pts.append(cir[0:2])
     pts = np.array(pts)
+    print len(pts)
 
     rect = order_points(pts)
+    tl, tr, br, bl = rect
+
+    okay = (abs(np.sum((tl - tr)**2)**0.5 - np.sum((br - bl)**2)**0.5) < 50 and
+           abs(np.sum((tl - bl)**2)**0.5 - np.sum((tr - br)**2)**0.5) < 50)
+
+
     mean = im.mean()
     for cir in rect:
         cv2.circle(im, (cir[0], cir[1]), 35, mean, -1)
+        cv2.circle(preview, (cir[0], cir[1]), 20, (255, 0, 0), 3)
 
-    warped = four_point_transform(im, rect)
-    return warped
+    warped = four_point_transform(imc, rect)
+    return okay, warped, preview, rect
 
-
+def doWarp(im, rect):
+    return four_point_transform(im, rect)

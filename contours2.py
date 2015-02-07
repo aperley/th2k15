@@ -21,7 +21,7 @@ from crop import crop
 
 def getBounds(img):
     # Grayscale and thresholding
-    #imgray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+    img = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
     #img = cv2.GaussianBlur(img, (0, 0), 0.5)
     #ret, thresh = cv2.threshold(img, 120, 255, 1)
     thresh = cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
